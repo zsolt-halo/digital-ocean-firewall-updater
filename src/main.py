@@ -9,12 +9,13 @@ load_dotenv()
 
 def main():
     token = os.getenv("DIGITAL_OCEAN_PAT")
+    firewall_id = os.getenv("DIGITAL_OCEAN_FIREWALL_ID")
     auth = {"Authorization": f"Bearer {token}"}
 
     my_current_public_ip = requests.get("https://api.ipify.org").text
 
     current_firewall_rules = requests.get(
-        "https://api.digitalocean.com/v2/firewalls/bd8e9abd-4000-4b1f-94da-0c570ad896f2",
+        f"https://api.digitalocean.com/v2/firewalls/{firewall_id}",
         headers=auth,
     ).json()
     current_inbound_rules = current_firewall_rules.get("firewall").get(
@@ -26,7 +27,7 @@ def main():
             f"[+] Deleting current inbound rules: \n {json.dumps(current_inbound_rules, indent=2)}"
         )
         rsp = requests.delete(
-            "https://api.digitalocean.com/v2/firewalls/bd8e9abd-4000-4b1f-94da-0c570ad896f2/rules",
+            f"https://api.digitalocean.com/v2/firewalls/{firewall_id}/rules",
             headers=auth,
             json={"inbound_rules": current_inbound_rules},
         )
@@ -41,7 +42,7 @@ def main():
         f"[+] Creating new inbound rules: \n {json.dumps(new_inbound_rule, indent=2)}"
     )
     rsp = requests.post(
-        "https://api.digitalocean.com/v2/firewalls/bd8e9abd-4000-4b1f-94da-0c570ad896f2/rules",
+        f"https://api.digitalocean.com/v2/firewalls/{firewall_id}/rules",
         headers=auth,
         json=new_inbound_rule,
     )
